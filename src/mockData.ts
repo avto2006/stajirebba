@@ -1,0 +1,92 @@
+import { Student, AnnouncementData } from './types';
+
+export const INITIAL_STUDENTS: Student[] = [
+  {
+    id: 'std-1',
+    firstName: 'ნიკოლოზ',
+    lastName: 'ბერიძე',
+    grade: 10,
+    track: 'გაცვლითი პროგრამები',
+    contact: '+995 599 11 22 33',
+  },
+  {
+    id: 'std-2',
+    firstName: 'ანა',
+    lastName: 'კაპანაძე',
+    grade: 11,
+    track: 'კინგსის ტიპის ოლიმპიადა',
+    contact: '+995 598 22 33 44',
+  },
+  {
+    id: 'std-3',
+    firstName: 'გიორგი',
+    lastName: 'მაისურაძე',
+    grade: 9,
+    track: 'გაცვლითი პროგრამები',
+    contact: '+995 577 33 44 55',
+  },
+  {
+    id: 'std-4',
+    firstName: 'მარიამ',
+    lastName: 'გელაშვილი',
+    grade: 12,
+    track: 'გაცვლითი პროგრამები',
+    contact: '+995 591 44 55 66',
+  },
+  {
+    id: 'std-5',
+    firstName: 'დავით',
+    lastName: 'ლომიძე',
+    grade: 8,
+    track: 'კინგსის ტიპის ოლიმპიადა',
+    contact: '+995 595 55 66 77',
+  },
+  {
+    id: 'std-6',
+    firstName: 'ელენე',
+    lastName: 'ჯაფარიძე',
+    grade: 10,
+    track: 'კინგსის ტიპის ოლიმპიადა',
+    contact: '+995 555 66 77 88',
+  },
+  {
+    id: 'std-7',
+    firstName: 'ლუკა',
+    lastName: 'წიკლაური',
+    grade: 11,
+    track: 'გაცვლითი პროგრამები',
+    contact: '+995 574 77 88 99',
+  },
+  {
+    id: 'std-8',
+    firstName: 'ნინო',
+    lastName: 'ხუციშვილი',
+    grade: 9,
+    track: 'კინგსის ტიპის ოლიმპიადა',
+    contact: '+995 593 88 99 00',
+  },
+  {
+    id: 'std-9',
+    firstName: 'სანდრო',
+    lastName: 'დოლიძე',
+    grade: 12,
+    track: 'კინგსის ტიპის ოლიმპიადა',
+    contact: '+995 597 12 45 78',
+  },
+  {
+    id: 'std-10',
+    firstName: 'თამარ',
+    lastName: 'მელიქიშვილი',
+    grade: 8,
+    track: 'გაცვლითი პროგრამები',
+    contact: '+995 558 98 76 54',
+  },
+];
+
+export const DEFAULT_ANNOUNCEMENT: AnnouncementData = {
+  eventName: 'ახალგაზრდული ლიდერობის ფორუმი 2026',
+  date: '2026-11-28',
+  time: '15:00',
+  location: 'აკადემიის მთავარი დარბაზი (რუსთაველის 42) / Zoom',
+  template: 'მოგესალმები {სახელი}! გაცნობებთ, რომ "ახალგაზრდა ლიდერთა აკადემიის" ორგანიზებით ტარდება ღონისძიება "{ღონისძიება}". თარიღი: {თარიღი}, დაწყების დრო: {დრო}. ადგილი/ფორმატი: {ადგილი}. გთხოვთ, მობრძანდეთ დროულად. წარმატებებს გისურვებთ!',
+};
