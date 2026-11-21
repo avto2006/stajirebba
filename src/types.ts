@@ -6,6 +6,8 @@ export interface Student {
   id: string;
   firstName: string;
   lastName: string;
+  firstNameEn?: string;
+  lastNameEn?: string;
   grade: GradeType;
   track: TrackType;
   contact: string;
@@ -22,6 +24,7 @@ export interface AnnouncementData {
 export interface SentMessage {
   studentId: string;
   studentName: string;
+  studentNameEn?: string;
   grade: GradeType;
   track: TrackType;
   contact: string;

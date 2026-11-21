@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Student, AnnouncementData, BroadcastHistoryItem, SentMessage } from './types';
-import { INITIAL_STUDENTS, DEFAULT_ANNOUNCEMENT } from './mockData';
-import { renderTemplate } from './utils';
+import {
+  INITIAL_STUDENTS,
+  DEFAULT_ANNOUNCEMENT_KA,
+  DEFAULT_ANNOUNCEMENT_EN,
+} from './mockData';
+import { Language, translations } from './translations';
+import { renderTemplate, getStudentDisplayName, georgianToLatin } from './utils';
 import { Header } from './components/Header';
 import { StudentList } from './components/StudentList';
 import { StudentModal } from './components/StudentModal';
@@ -9,11 +14,62 @@ import { AnnouncementForm } from './components/AnnouncementForm';
 import { HistoryExport } from './components/HistoryExport';
 import { CheckCircle2 } from 'lucide-react';
 
-const STORAGE_KEY_STUDENTS = 'ala_students_v1';
-const STORAGE_KEY_ANNOUNCEMENT = 'ala_announcement_v1';
-const STORAGE_KEY_HISTORY = 'ala_history_v1';
+const STORAGE_KEY_STUDENTS = 'ala_students_v2';
+const STORAGE_KEY_ANNOUNCEMENTS = 'ala_announcements_v2';
+const STORAGE_KEY_HISTORY = 'ala_history_v2';
+const STORAGE_KEY_THEME = 'ala_theme_v1';
+const STORAGE_KEY_LANG = 'ala_lang_v1';
 
 export const App: React.FC = () => {
+  // Theme state: 'light' | 'dark'
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const savedTheme = localStorage.getItem(STORAGE_KEY_THEME);
+      if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    } catch {
+      // fallback
+    }
+    return 'light';
+  });
+
+  // Language state: 'ka' | 'en'
+  const [lang, setLang] = useState<Language>(() => {
+    try {
+      const savedLang = localStorage.getItem(STORAGE_KEY_LANG);
+      if (savedLang === 'ka' || savedLang === 'en') return savedLang;
+    } catch {
+      // fallback
+    }
+    return 'ka';
+  });
+
+  const t = translations[lang];
+
+  // Apply dark mode class to html element
+  useEffect(() => {
+    try {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem(STORAGE_KEY_THEME, theme);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [theme]);
+
+  // Sync Language to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_LANG, lang);
+      document.documentElement.lang = lang;
+    } catch (e) {
+      console.error(e);
+    }
+  }, [lang]);
+
   // Students state with localStorage persistence
   const [students, setStudents] = useState<Student[]>(() => {
     try {
@@ -28,20 +84,26 @@ export const App: React.FC = () => {
     return INITIAL_STUDENTS;
   });
 
-  // Selected student IDs (default to all initially so preview & ready state are immediate)
+  // Selected student IDs (default to all initially)
   const [selectedIds, setSelectedIds] = useState<string[]>(() =>
     INITIAL_STUDENTS.map((s) => s.id)
   );
 
-  // Announcement state with localStorage persistence
-  const [announcement, setAnnouncement] = useState<AnnouncementData>(() => {
+  // Language-specific Announcement state with localStorage persistence
+  const [announcements, setAnnouncements] = useState<{
+    ka: AnnouncementData;
+    en: AnnouncementData;
+  }>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_ANNOUNCEMENT);
+      const saved = localStorage.getItem(STORAGE_KEY_ANNOUNCEMENTS);
       if (saved) return JSON.parse(saved);
     } catch {
       // fallback
     }
-    return DEFAULT_ANNOUNCEMENT;
+    return {
+      ka: DEFAULT_ANNOUNCEMENT_KA,
+      en: DEFAULT_ANNOUNCEMENT_EN,
+    };
   });
 
   // Broadcast History state with localStorage persistence
@@ -65,25 +127,25 @@ export const App: React.FC = () => {
     try {
       localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(students));
     } catch (e) {
-      console.error('Failed to save students to localStorage', e);
+      console.error(e);
     }
   }, [students]);
 
-  // Sync Announcement to localStorage
+  // Sync Announcements to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY_ANNOUNCEMENT, JSON.stringify(announcement));
+      localStorage.setItem(STORAGE_KEY_ANNOUNCEMENTS, JSON.stringify(announcements));
     } catch (e) {
-      console.error('Failed to save announcement to localStorage', e);
+      console.error(e);
     }
-  }, [announcement]);
+  }, [announcements]);
 
   // Sync History to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
     } catch (e) {
-      console.error('Failed to save history to localStorage', e);
+      console.error(e);
     }
   }, [history]);
 
@@ -105,6 +167,24 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
+  const handleToggleLang = () => {
+    setLang((prev) => (prev === 'ka' ? 'en' : 'ka'));
+  };
+
+  // Active announcement according to selected language
+  const currentAnnouncement = announcements[lang];
+
+  const handleAnnouncementChange = (updated: AnnouncementData) => {
+    setAnnouncements((prev) => ({
+      ...prev,
+      [lang]: updated,
+    }));
+  };
+
   // Handlers for Students
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) =>
@@ -123,27 +203,36 @@ export const App: React.FC = () => {
   };
 
   const handleAddStudent = (newStudentData: Omit<Student, 'id'>) => {
+    const fnEn = newStudentData.firstNameEn || georgianToLatin(newStudentData.firstName);
+    const lnEn = newStudentData.lastNameEn || georgianToLatin(newStudentData.lastName);
+
     const newStudent: Student = {
       ...newStudentData,
+      firstNameEn: fnEn,
+      lastNameEn: lnEn,
       id: `std-${Date.now()}`,
     };
     setStudents((prev) => [newStudent, ...prev]);
     setSelectedIds((prev) => [newStudent.id, ...prev]);
-    setToastNotification(`მოსწავლე "${newStudent.firstName} ${newStudent.lastName}" წარმატებით დაემატა!`);
+    const names = getStudentDisplayName(newStudent, lang);
+    setToastNotification(t.studentAdded(names.fullName));
   };
 
   const handleDeleteStudent = (id: string) => {
     setStudents((prev) => prev.filter((s) => s.id !== id));
     setSelectedIds((prev) => prev.filter((i) => i !== id));
-    setToastNotification('მოსწავლე წაიშალა სიიდან');
+    setToastNotification(t.studentDeleted);
   };
 
   const handleResetData = () => {
-    if (window.confirm('დარწმუნებული ხართ, რომ გსურთ საცდელი 10 მოსწავლის მონაცემების აღდგენა?')) {
+    if (window.confirm(t.resetConfirm)) {
       setStudents(INITIAL_STUDENTS);
       setSelectedIds(INITIAL_STUDENTS.map((s) => s.id));
-      setAnnouncement(DEFAULT_ANNOUNCEMENT);
-      setToastNotification('საცდელი მონაცემები წარმატებით აღდგა!');
+      setAnnouncements({
+        ka: DEFAULT_ANNOUNCEMENT_KA,
+        en: DEFAULT_ANNOUNCEMENT_EN,
+      });
+      setToastNotification(t.demoDataRestored);
     }
   };
 
@@ -153,12 +242,12 @@ export const App: React.FC = () => {
   // Handler for Sending Broadcast
   const handleSend = () => {
     if (selectedStudents.length === 0) {
-      setWarningMessage('გაფრთხილება: შეტყობინების გასაგზავნად მონიშნეთ მინიმუმ ერთი მოსწავლე!');
+      setWarningMessage(t.sendWarningZero);
       return;
     }
 
     const now = new Date();
-    const formattedSentAt = now.toLocaleString('ka-GE', {
+    const formattedSentAt = now.toLocaleString(lang === 'ka' ? 'ka-GE' : 'en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -166,29 +255,35 @@ export const App: React.FC = () => {
       minute: '2-digit',
     });
 
-    const renderedMessages: SentMessage[] = selectedStudents.map((student) => ({
-      studentId: student.id,
-      studentName: `${student.firstName} ${student.lastName}`,
-      grade: student.grade,
-      track: student.track,
-      contact: student.contact,
-      renderedText: renderTemplate(announcement.template, student, announcement),
-    }));
+    const renderedMessages: SentMessage[] = selectedStudents.map((student) => {
+      const namesGeo = getStudentDisplayName(student, 'ka');
+      const namesEn = getStudentDisplayName(student, 'en');
+
+      return {
+        studentId: student.id,
+        studentName: namesGeo.fullName,
+        studentNameEn: namesEn.fullName,
+        grade: student.grade,
+        track: student.track,
+        contact: student.contact,
+        renderedText: renderTemplate(currentAnnouncement.template, student, currentAnnouncement, lang),
+      };
+    });
 
     const newHistoryItem: BroadcastHistoryItem = {
       id: `bc-${Date.now()}`,
-      eventName: announcement.eventName || 'ახალგაზრდული ღონისძიება',
+      eventName:
+        currentAnnouncement.eventName ||
+        (lang === 'ka' ? 'ახალგაზრდული ღონისძიება' : 'Youth Event'),
       sentAt: formattedSentAt,
       recipientCount: selectedStudents.length,
       status: 'წარმატებით გაიგზავნა',
       messages: renderedMessages,
-      announcementData: { ...announcement },
+      announcementData: { ...currentAnnouncement },
     };
 
     setHistory((prev) => [newHistoryItem, ...prev]);
-    setToastNotification(
-      `შეტყობინება წარმატებით გაიგზავნა ${selectedStudents.length} მოსწავლესთან!`
-    );
+    setToastNotification(t.broadcastSuccess(selectedStudents.length));
 
     // Smoothly scroll down to History and Export
     setTimeout(() => {
@@ -197,23 +292,23 @@ export const App: React.FC = () => {
   };
 
   const handleClearHistory = () => {
-    if (window.confirm('ნამდვილად გსურთ შეტყობინებების ისტორიის გასუფთავება?')) {
+    if (window.confirm(t.clearHistoryConfirm)) {
       setHistory([]);
-      setToastNotification('შეტყობინებების ისტორია გასუფთავდა');
+      setToastNotification(t.historyCleared);
     }
   };
 
   const handleDeleteHistoryItem = (id: string) => {
     setHistory((prev) => prev.filter((h) => h.id !== id));
-    setToastNotification('ჩანაწერი წაიშალა ისტორიიდან');
+    setToastNotification(t.historyItemDeleted);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100/70 text-slate-900 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-100/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
       {/* Toast Notification Alert */}
       {toastNotification && (
-        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-300">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-2xl shadow-xl border border-slate-800 dark:border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 dark:text-emerald-600 flex-shrink-0" />
           <span className="text-xs sm:text-sm font-semibold">{toastNotification}</span>
         </div>
       )}
@@ -225,6 +320,10 @@ export const App: React.FC = () => {
         historyCount={history.length}
         onResetData={handleResetData}
         onScrollTo={handleScrollTo}
+        lang={lang}
+        onToggleLang={handleToggleLang}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Main Single Screen Workspace Content */}
@@ -242,18 +341,20 @@ export const App: React.FC = () => {
               onDeleteStudent={handleDeleteStudent}
               onOpenAddModal={() => setIsModalOpen(true)}
               onResetData={handleResetData}
+              lang={lang}
             />
           </section>
 
           {/* Section 2: Announcement & Live Preview (7 cols) */}
           <section id="announcement-section" className="lg:col-span-7 scroll-mt-24">
             <AnnouncementForm
-              announcement={announcement}
-              onChange={setAnnouncement}
+              announcement={currentAnnouncement}
+              onChange={handleAnnouncementChange}
               selectedStudents={selectedStudents}
               onSend={handleSend}
               warningMessage={warningMessage}
               setWarningMessage={setWarningMessage}
+              lang={lang}
             />
           </section>
         </div>
@@ -261,15 +362,16 @@ export const App: React.FC = () => {
         {/* Section 3: History & Export */}
         <section id="history-section" className="scroll-mt-24 pt-2">
           <div className="flex items-center gap-2 mb-4">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-            <h2 className="text-lg font-bold text-slate-900">
-              3. გაგზავნილი შეტყობინებების ჟურნალი და ექსპორტი
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400"></span>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              {t.historyHeading}
             </h2>
           </div>
           <HistoryExport
             history={history}
             onClearHistory={handleClearHistory}
             onDeleteHistoryItem={handleDeleteHistoryItem}
+            lang={lang}
           />
         </section>
       </main>
@@ -279,13 +381,12 @@ export const App: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddStudent={handleAddStudent}
+        lang={lang}
       />
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-5 px-6 text-center text-xs text-slate-500">
-        <p>
-          © 2026 ახალგაზრდა ლიდერთა აკადემია • ღონისძიებების ანონსებისა და შეტყობინებების მოდული
-        </p>
+      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-5 px-6 text-center text-xs text-slate-500 dark:text-slate-400 transition-colors duration-200">
+        <p>{t.footerCopyright}</p>
       </footer>
     </div>
   );
