@@ -1,7 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { AnnouncementData, Student } from '../types';
 import { Language, translations } from '../translations';
-import { renderTemplate, getStudentDisplayName } from '../utils';
+import { renderTemplate, getStudentDisplayName, formatDisplayDateTime } from '../utils';
+import { QUICK_TEMPLATES_KA, QUICK_TEMPLATES_EN } from '../mockData';
 import {
   Megaphone,
   Calendar,
@@ -15,6 +16,7 @@ import {
   Info,
   MessageSquare,
   Phone,
+  BookmarkCheck,
 } from 'lucide-react';
 
 interface AnnouncementFormProps {
@@ -38,6 +40,9 @@ export const AnnouncementForm: React.FC<AnnouncementFormProps> = ({
 }) => {
   const t = translations[lang];
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPosition, setCursorPosition] = useState<{ start: number; end: number } | null>(null);
+
+  const quickTemplates = lang === 'ka' ? QUICK_TEMPLATES_KA : QUICK_TEMPLATES_EN;
 
   const handleChange = (field: keyof AnnouncementData, value: string) => {
     onChange({
@@ -49,25 +54,51 @@ export const AnnouncementForm: React.FC<AnnouncementFormProps> = ({
     }
   };
 
-  // Insert variable tag into textarea at cursor position
+  const handleUpdateCursor = () => {
+    if (textareaRef.current) {
+      setCursorPosition({
+        start: textareaRef.current.selectionStart,
+        end: textareaRef.current.selectionEnd,
+      });
+    }
+  };
+
+  // Insert variable tag into textarea at cursor position (or append to end if not marked)
   const insertTag = (tag: string) => {
     const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
     const text = announcement.template;
+
+    let start = text.length;
+    let end = text.length;
+
+    if (
+      cursorPosition !== null &&
+      typeof cursorPosition.start === 'number' &&
+      typeof cursorPosition.end === 'number'
+    ) {
+      start = cursorPosition.start;
+      end = cursorPosition.end;
+    } else if (textarea && document.activeElement === textarea) {
+      start = textarea.selectionStart;
+      end = textarea.selectionEnd;
+    }
+
     const newText = text.substring(0, start) + tag + text.substring(end);
+    const newPos = start + tag.length;
 
     onChange({
       ...announcement,
       template: newText,
     });
 
+    setCursorPosition({ start: newPos, end: newPos });
+
     // Restore focus and cursor position after the inserted tag
     setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + tag.length, start + tag.length);
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(newPos, newPos);
+      }
     }, 0);
   };
 
@@ -218,6 +249,55 @@ export const AnnouncementForm: React.FC<AnnouncementFormProps> = ({
             </div>
           </div>
 
+          {/* Uniform Date & Time Display Badge */}
+          {announcement.date && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs text-slate-600 dark:text-slate-300">
+              <span className="font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-blue-500" />
+                {t.dateTimePreviewLabel}
+              </span>
+              <span className="font-mono font-bold text-blue-700 dark:text-blue-300 px-2 py-0.5 bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700">
+                {formatDisplayDateTime(announcement.date, announcement.time)}
+              </span>
+            </div>
+          )}
+
+          {/* Quick Ready Templates (მზა შაბლონები) */}
+          <div className="p-3 bg-gradient-to-r from-blue-50/80 to-indigo-50/60 dark:from-slate-800/90 dark:to-indigo-950/30 rounded-xl border border-blue-100 dark:border-slate-700 space-y-2">
+            <div className="flex items-center justify-between flex-wrap gap-1">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 dark:text-blue-200">
+                <BookmarkCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <span>{t.quickTemplatesLabel}</span>
+              </div>
+              <span className="text-[11px] text-blue-600/90 dark:text-blue-400 font-medium">
+                {t.quickTemplatesSub}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {quickTemplates.map((qt) => {
+                const isActive = announcement.template === qt.template;
+                return (
+                  <button
+                    key={qt.id}
+                    type="button"
+                    onClick={() => {
+                      onChange({ ...announcement, template: qt.template });
+                      setCursorPosition(null);
+                      if (warningMessage) setWarningMessage(null);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-2xs active:scale-95 ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-blue-500/25 ring-2 ring-blue-400/50'
+                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300 border border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    <span>{qt.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Template Text with Tag Buttons */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -255,7 +335,13 @@ export const AnnouncementForm: React.FC<AnnouncementFormProps> = ({
               ref={textareaRef}
               rows={4}
               value={announcement.template}
-              onChange={(e) => handleChange('template', e.target.value)}
+              onChange={(e) => {
+                handleChange('template', e.target.value);
+                handleUpdateCursor();
+              }}
+              onSelect={handleUpdateCursor}
+              onClick={handleUpdateCursor}
+              onKeyUp={handleUpdateCursor}
               placeholder="Template text..."
               className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 focus:bg-white dark:focus:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-normal leading-relaxed"
             />

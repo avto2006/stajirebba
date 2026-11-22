@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BroadcastHistoryItem, SentMessage } from '../types';
 import { Language, translations } from '../translations';
-import { exportToTxt, exportToCsv, georgianToLatin } from '../utils';
+import { exportToTxt, exportToCsv, georgianToLatin, formatDisplayDateTime } from '../utils';
 import {
   History,
   FileDown,
@@ -225,8 +225,22 @@ export const HistoryExport: React.FC<HistoryExportProps> = ({
                       <Check className="w-3 h-3" /> {t.statusSentBadge}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    {t.sentAtLabel} {activeCampaign.sentAt} | {t.recipientsLabel} {activeCampaign.recipientCount} {t.studentsCount}
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                      {t.sentAtLabel} {activeCampaign.sentAt}
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {t.recipientsLabel} <strong className="text-blue-600 dark:text-blue-400">{activeCampaign.recipientCount}</strong> {t.studentsCount}
+                    </span>
+                    {activeCampaign.announcementData?.date && (
+                      <>
+                        <span>•</span>
+                        <span className="text-slate-600 dark:text-slate-400 font-mono">
+                          {formatDisplayDateTime(activeCampaign.announcementData.date, activeCampaign.announcementData.time)}
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
 

@@ -2,6 +2,7 @@ export type Language = 'ka' | 'en';
 
 export const translations = {
   ka: {
+    pageTitle: 'ახალგაზრდა ლიდერთა აკადემია — ანონსები',
     appTitle: 'ახალგაზრდა ლიდერთა აკადემია',
     appSubtitle: 'ღონისძიებების ანონსებისა და მასობრივი შეტყობინებების მართვის პანელი',
     version: 'v2.0',
@@ -12,6 +13,14 @@ export const translations = {
     selected: 'მონიშნული',
     sent: 'გაგზავნილი',
     studentsCount: 'მოსწავლე',
+
+    // KPI Summary
+    kpiTotalStudents: 'სულ მოსწავლე',
+    kpiSelectedRecipients: 'მონიშნული ადრესატი',
+    kpiSentCampaigns: 'გაგზავნილი კამპანია',
+    kpiTotalDesc: 'რეგისტრირებული ბაზა',
+    kpiSelectedDesc: 'მიმღებად არჩეული',
+    kpiHistoryDesc: 'ჟურნალში შენახული',
 
     // Students
     studentsListTitle: 'მოსწავლეების სია',
@@ -60,11 +69,15 @@ export const translations = {
     eventNamePlaceholder: 'მაგ. ახალგაზრდული ლიდერობის ფორუმი 2026',
     dateLabel: 'თარიღი',
     timeLabel: 'დრო',
-    locationLabel: 'ადგილი / ფორმატი',
-    locationPlaceholder: 'მაგ. აკადემიის მთავარი დარბაზი / Zoom',
+    locationLabel: 'ადგილი / მისამართი',
+    locationPlaceholder: 'მაგ. სამრეკლოს ქუჩა 26, Tbilisi, Georgia',
     templateLabel: 'შაბლონის ტექსტი (დინამიკური ცვლადებით)',
     characters: 'სიმბოლო',
-    clickToInsert: 'დააჭირეთ ცვლადის ტექსტში ჩასასმელად:',
+    clickToInsert: 'დააჭირეთ ცვლადის ტექსტში ჩასასმელად (კურსორის პოზიციაზე):',
+    quickTemplatesLabel: 'სწრაფი მზა შაბლონები:',
+    quickTemplatesSub: 'ერთი კლიკით შეარჩიეთ ან განაახლეთ ტექსტი',
+    quickTemplateApplied: (name: string) => `შაბლონი "${name}" ჩაიტვირთა!`,
+    dateTimePreviewLabel: 'თარიღისა და დროის ფორმატი:',
     livePreviewTitle: 'რეალურ დროში გადახედვა (Live Preview)',
     livePreviewSubtitle: 'პირველი მონიშნული მოსწავლისთვის გენერირებული ტექსტი',
     recipientLabel: 'ადრესატი:',
@@ -74,12 +87,12 @@ export const translations = {
     pleaseSelectNotice: '⚠️ მონიშნეთ მოსწავლეები გასაგზავნად',
     sendButton: (count: number) => `გაგზავნა ${count > 0 ? `(${count})` : ''}`,
     sendWarningZero: 'გაფრთხილება: შეტყობინების გასაგზავნად გთხოვთ მონიშნოთ მინიმუმ 1 მოსწავლე!',
-    sendWarningName: 'გთხოვთ შეიყვანოთ ღონისძიების სახელი!',
-    sendWarningTemplate: 'გთხოვთ შეიყვანოთ შეტყობინების შაბლონის ტექსტი!',
+    sendWarningName: 'გაფრთხილება: გთხოვთ შეიყვანოთ ღონისძიების სახელი!',
+    sendWarningTemplate: 'გაფრთხილება: გთხოვთ შეიყვანოთ შეტყობინების შაბლონის ტექსტი!',
     dismiss: 'დახურვა',
 
     // History
-    historyHeading: '3. გაგზავნილი შეტყობინებების ჟურნალი და ექსპორტი',
+    historyHeading: 'გაგზავნილი შეტყობინებების ჟურნალი და ექსპორტი',
     historyMainTitle: 'შეტყობინებების ისტორია და ექსპორტი',
     totalCampaigns: (count: number) => `სულ გაგზავნილი კამპანია: ${count}`,
     txtExport: 'TXT ექსპორტი',
@@ -103,7 +116,7 @@ export const translations = {
     studentAdded: (name: string) => `მოსწავლე "${name}" წარმატებით დაემატა!`,
     studentDeleted: 'მოსწავლე წაიშალა სიიდან',
     demoDataRestored: 'საცდელი მონაცემები წარმატებით აღდგა!',
-    broadcastSuccess: (count: number) => `შეტყობინება წარმატებით გაიგზავნა ${count} მოსწავლესთან!`,
+    broadcastSuccess: (count: number) => `შეტყობინება წარმატებით გაიგზავნა! ჟურნალში დაფიქსირდა ${count} პერსონალიზებული შეტყობინება.`,
     historyCleared: 'შეტყობინებების ისტორია გასუფთავდა',
     historyItemDeleted: 'ჩანაწერი წაიშალა ისტორიიდან',
 
@@ -114,6 +127,7 @@ export const translations = {
     footerCopyright: '© 2026 ახალგაზრდა ლიდერთა აკადემია • ღონისძიებების ანონსებისა და შეტყობინებების მოდული',
   },
   en: {
+    pageTitle: 'Young Leaders Academy — Announcements',
     appTitle: 'Young Leaders Academy',
     appSubtitle: 'Event Announcements & Mass Messaging Management System',
     version: 'v2.0',
@@ -124,6 +138,14 @@ export const translations = {
     selected: 'selected',
     sent: 'sent',
     studentsCount: 'students',
+
+    // KPI Summary
+    kpiTotalStudents: 'Total Students',
+    kpiSelectedRecipients: 'Selected Recipients',
+    kpiSentCampaigns: 'Sent Campaigns',
+    kpiTotalDesc: 'Enrolled roster',
+    kpiSelectedDesc: 'Ready to receive',
+    kpiHistoryDesc: 'Logged in registry',
 
     // Students
     studentsListTitle: 'Students List',
@@ -172,11 +194,15 @@ export const translations = {
     eventNamePlaceholder: 'e.g. Youth Leadership Forum 2026',
     dateLabel: 'Date',
     timeLabel: 'Time',
-    locationLabel: 'Location / Format',
-    locationPlaceholder: 'e.g. Academy Main Hall / Zoom',
+    locationLabel: 'Location / Address',
+    locationPlaceholder: 'e.g. სამრეკლოს ქუჩა 26, Tbilisi, Georgia',
     templateLabel: 'Message Template (with dynamic variables)',
     characters: 'characters',
-    clickToInsert: 'Click to insert token into template:',
+    clickToInsert: 'Click to insert token into template (at cursor position):',
+    quickTemplatesLabel: 'Quick Templates:',
+    quickTemplatesSub: 'One-click load or refresh message template',
+    quickTemplateApplied: (name: string) => `Template "${name}" applied!`,
+    dateTimePreviewLabel: 'Date & Time Format:',
     livePreviewTitle: 'Real-time Live Preview',
     livePreviewSubtitle: 'Generated message for the first selected student',
     recipientLabel: 'Recipient:',
@@ -186,12 +212,12 @@ export const translations = {
     pleaseSelectNotice: '⚠️ Select students to send messages',
     sendButton: (count: number) => `Send ${count > 0 ? `(${count})` : ''}`,
     sendWarningZero: 'Warning: Please select at least 1 student to send messages!',
-    sendWarningName: 'Please enter the event name!',
-    sendWarningTemplate: 'Please enter the message template text!',
+    sendWarningName: 'Warning: Please enter the event name!',
+    sendWarningTemplate: 'Warning: Please enter the message template text!',
     dismiss: 'Dismiss',
 
     // History
-    historyHeading: '3. Sent Messages History & Export',
+    historyHeading: 'Sent Messages History & Export',
     historyMainTitle: 'Message History & Export',
     totalCampaigns: (count: number) => `Total campaigns sent: ${count}`,
     txtExport: 'Export TXT',
@@ -215,7 +241,7 @@ export const translations = {
     studentAdded: (name: string) => `Student "${name}" was successfully added!`,
     studentDeleted: 'Student removed from list',
     demoDataRestored: 'Demo data restored successfully!',
-    broadcastSuccess: (count: number) => `Messages successfully broadcasted to ${count} students!`,
+    broadcastSuccess: (count: number) => `Messages successfully broadcasted! ${count} personalized messages recorded in history log.`,
     historyCleared: 'Message history cleared',
     historyItemDeleted: 'Log record deleted from history',
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  GraduationCap,
   Users,
   Megaphone,
   History,
@@ -42,8 +41,12 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-20 gap-3">
           {/* Logo & Branding */}
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-blue-700 via-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20 flex-shrink-0">
-              <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7" />
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white dark:bg-slate-800 p-1 flex items-center justify-center shadow-md shadow-blue-500/10 flex-shrink-0 border border-slate-200/90 dark:border-slate-700 overflow-hidden">
+              <img
+                src="/logo.png"
+                alt={t.appTitle}
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">

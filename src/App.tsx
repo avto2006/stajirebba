@@ -6,13 +6,14 @@ import {
   DEFAULT_ANNOUNCEMENT_EN,
 } from './mockData';
 import { Language, translations } from './translations';
-import { renderTemplate, getStudentDisplayName, georgianToLatin } from './utils';
+import { renderTemplate, getStudentDisplayName, georgianToLatin, formatSentAt } from './utils';
 import { Header } from './components/Header';
+import { KpiBar } from './components/KpiBar';
 import { StudentList } from './components/StudentList';
 import { StudentModal } from './components/StudentModal';
 import { AnnouncementForm } from './components/AnnouncementForm';
 import { HistoryExport } from './components/HistoryExport';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, AlertTriangle } from 'lucide-react';
 
 const STORAGE_KEY_STUDENTS = 'ala_students_v2';
 const STORAGE_KEY_ANNOUNCEMENTS = 'ala_announcements_v2';
@@ -60,15 +61,16 @@ export const App: React.FC = () => {
     }
   }, [theme]);
 
-  // Sync Language to localStorage
+  // Sync Language and document.title
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_LANG, lang);
       document.documentElement.lang = lang;
+      document.title = t.pageTitle;
     } catch (e) {
       console.error(e);
     }
-  }, [lang]);
+  }, [lang, t.pageTitle]);
 
   // Students state with localStorage persistence
   const [students, setStudents] = useState<Student[]>(() => {
@@ -96,7 +98,16 @@ export const App: React.FC = () => {
   }>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_ANNOUNCEMENTS);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.ka && (parsed.ka.location.includes('რუსთაველის') || parsed.ka.location.includes('Rustaveli'))) {
+          parsed.ka.location = 'სამრეკლოს ქუჩა 26, Tbilisi, Georgia';
+        }
+        if (parsed.en && (parsed.en.location.includes('Rustaveli') || parsed.en.location.includes('რუსთაველის'))) {
+          parsed.en.location = 'სამრეკლოს ქუჩა 26, Tbilisi, Georgia';
+        }
+        return parsed;
+      }
     } catch {
       // fallback
     }
@@ -120,7 +131,10 @@ export const App: React.FC = () => {
   // UI States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
-  const [toastNotification, setToastNotification] = useState<string | null>(null);
+  const [toastNotification, setToastNotification] = useState<{
+    type: 'success' | 'warning';
+    message: string;
+  } | null>(null);
 
   // Sync Students to localStorage
   useEffect(() => {
@@ -215,13 +229,13 @@ export const App: React.FC = () => {
     setStudents((prev) => [newStudent, ...prev]);
     setSelectedIds((prev) => [newStudent.id, ...prev]);
     const names = getStudentDisplayName(newStudent, lang);
-    setToastNotification(t.studentAdded(names.fullName));
+    setToastNotification({ type: 'success', message: t.studentAdded(names.fullName) });
   };
 
   const handleDeleteStudent = (id: string) => {
     setStudents((prev) => prev.filter((s) => s.id !== id));
     setSelectedIds((prev) => prev.filter((i) => i !== id));
-    setToastNotification(t.studentDeleted);
+    setToastNotification({ type: 'success', message: t.studentDeleted });
   };
 
   const handleResetData = () => {
@@ -232,7 +246,7 @@ export const App: React.FC = () => {
         ka: DEFAULT_ANNOUNCEMENT_KA,
         en: DEFAULT_ANNOUNCEMENT_EN,
       });
-      setToastNotification(t.demoDataRestored);
+      setToastNotification({ type: 'success', message: t.demoDataRestored });
     }
   };
 
@@ -243,17 +257,21 @@ export const App: React.FC = () => {
   const handleSend = () => {
     if (selectedStudents.length === 0) {
       setWarningMessage(t.sendWarningZero);
+      setToastNotification({ type: 'warning', message: t.sendWarningZero });
+      return;
+    }
+    if (!currentAnnouncement.eventName.trim()) {
+      setWarningMessage(t.sendWarningName);
+      setToastNotification({ type: 'warning', message: t.sendWarningName });
+      return;
+    }
+    if (!currentAnnouncement.template.trim()) {
+      setWarningMessage(t.sendWarningTemplate);
+      setToastNotification({ type: 'warning', message: t.sendWarningTemplate });
       return;
     }
 
-    const now = new Date();
-    const formattedSentAt = now.toLocaleString(lang === 'ka' ? 'ka-GE' : 'en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const formattedSentAt = formatSentAt(new Date());
 
     const renderedMessages: SentMessage[] = selectedStudents.map((student) => {
       const namesGeo = getStudentDisplayName(student, 'ka');
@@ -283,7 +301,11 @@ export const App: React.FC = () => {
     };
 
     setHistory((prev) => [newHistoryItem, ...prev]);
-    setToastNotification(t.broadcastSuccess(selectedStudents.length));
+    setWarningMessage(null);
+    setToastNotification({
+      type: 'success',
+      message: t.broadcastSuccess(selectedStudents.length),
+    });
 
     // Smoothly scroll down to History and Export
     setTimeout(() => {
@@ -294,22 +316,38 @@ export const App: React.FC = () => {
   const handleClearHistory = () => {
     if (window.confirm(t.clearHistoryConfirm)) {
       setHistory([]);
-      setToastNotification(t.historyCleared);
+      setToastNotification({ type: 'success', message: t.historyCleared });
     }
   };
 
   const handleDeleteHistoryItem = (id: string) => {
     setHistory((prev) => prev.filter((h) => h.id !== id));
-    setToastNotification(t.historyItemDeleted);
+    setToastNotification({ type: 'success', message: t.historyItemDeleted });
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-100/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
-      {/* Toast Notification Alert */}
+      {/* Toast Notification Alert (Success & Warning) */}
       {toastNotification && (
-        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-2xl shadow-xl border border-slate-800 dark:border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-300">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 dark:text-emerald-600 flex-shrink-0" />
-          <span className="text-xs sm:text-sm font-semibold">{toastNotification}</span>
+        <div
+          className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+            toastNotification.type === 'warning'
+              ? 'bg-amber-950/90 text-amber-100 border-amber-600/80 backdrop-blur-md'
+              : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-800 dark:border-slate-100'
+          }`}
+        >
+          {toastNotification.type === 'warning' ? (
+            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 dark:text-emerald-600 flex-shrink-0" />
+          )}
+          <span className="text-xs sm:text-sm font-semibold">{toastNotification.message}</span>
+          <button
+            onClick={() => setToastNotification(null)}
+            className="ml-2 text-xs font-bold opacity-70 hover:opacity-100"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -327,7 +365,16 @@ export const App: React.FC = () => {
       />
 
       {/* Main Single Screen Workspace Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+        {/* Compact Real-Time KPI Stats Bar */}
+        <KpiBar
+          totalStudents={students.length}
+          selectedRecipients={selectedIds.length}
+          sentCampaigns={history.length}
+          lang={lang}
+          onScrollTo={handleScrollTo}
+        />
+
         {/* Row 1: Students & Announcement/LivePreview (side by side) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Section 1: Students (5 cols) */}

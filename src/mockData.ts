@@ -103,20 +103,68 @@ export const INITIAL_STUDENTS: Student[] = [
   },
 ];
 
+export interface QuickTemplate {
+  id: string;
+  title: string;
+  template: string;
+}
+
+export const QUICK_TEMPLATES_KA: QuickTemplate[] = [
+  {
+    id: 'announcement',
+    title: 'ღონისძიების ანონსი',
+    template:
+      'მოგესალმები {სახელი}! გაცნობებთ, რომ "ახალგაზრდა ლიდერთა აკადემიის" ორგანიზებით ტარდება ღონისძიება "{ღონისძიება}". თარიღი: {თარიღი}, დაწყების დრო: {დრო}. ადგილი/ფორმატი: {ადგილი}. გთხოვთ, მობრძანდეთ დროულად. წარმატებებს გისურვებთ!',
+  },
+  {
+    id: 'reminder',
+    title: 'შეხსენება',
+    template:
+      'გამარჯობა {სახელი}! შეგახსენებთ, რომ ღონისძიება "{ღონისძიება}" გაიმართება {თარიღი}-ს, {დრო} საათზე ({ადგილი}). გელით {მიმართულება} მიმართულების {კლასი}ს მოსწავლეებს!',
+  },
+  {
+    id: 'olympiad',
+    title: 'პროგრამა / ოლიმპიადა',
+    template:
+      'ძვირფასო {სახელი}! {მიმართულება} ფარგლებში დაგეგმილია მნიშვნელოვანი შეხვედრა: "{ღონისძიება}". გელით {თარიღი}-ს, {დრო}-ზე მისამართზე: {ადგილი}. წარმატებულ მონაწილეობას გისურვებთ!',
+  },
+];
+
+export const QUICK_TEMPLATES_EN: QuickTemplate[] = [
+  {
+    id: 'announcement',
+    title: 'Event Announcement',
+    template:
+      'Hello {firstName}! We are pleased to announce that the Young Leaders Academy is organizing the "{event}" event. Date: {date}, Start time: {time}. Location/Format: {location}. Please arrive on time. Best of luck!',
+  },
+  {
+    id: 'reminder',
+    title: 'Event Reminder',
+    template:
+      'Dear {firstName}! This is a friendly reminder that "{event}" will take place on {date} at {time} ({location}). We look forward to seeing {track} students from {grade}!',
+  },
+  {
+    id: 'olympiad',
+    title: 'Program / Olympiad',
+    template:
+      'Dear {firstName}! Within the {track} track, an important session is scheduled: "{event}". We look forward to seeing you on {date} at {time} at: {location}. Wishing you great success!',
+  },
+];
+
 export const DEFAULT_ANNOUNCEMENT_KA: AnnouncementData = {
   eventName: 'ახალგაზრდული ლიდერობის ფორუმი 2026',
   date: '2026-11-28',
   time: '15:00',
-  location: 'აკადემიის მთავარი დარბაზი (რუსთაველის 42) / Zoom',
-  template: 'მოგესალმები {სახელი}! გაცნობებთ, რომ "ახალგაზრდა ლიდერთა აკადემიის" ორგანიზებით ტარდება ღონისძიება "{ღონისძიება}". თარიღი: {თარიღი}, დაწყების დრო: {დრო}. ადგილი/ფორმატი: {ადგილი}. გთხოვთ, მობრძანდეთ დროულად. წარმატებებს გისურვებთ!',
+  location: 'სამრეკლოს ქუჩა 26, Tbilisi, Georgia',
+  template: QUICK_TEMPLATES_KA[0].template,
 };
 
 export const DEFAULT_ANNOUNCEMENT_EN: AnnouncementData = {
   eventName: 'Youth Leadership Forum 2026',
   date: '2026-11-28',
   time: '15:00',
-  location: 'Academy Main Hall (42 Rustaveli Ave) / Zoom',
-  template: 'Hello {firstName}! We are pleased to announce that the Young Leaders Academy is organizing the "{event}" event. Date: {date}, Start time: {time}. Location/Format: {location}. Please arrive on time. Best of luck!',
+  location: 'სამრეკლოს ქუჩა 26, Tbilisi, Georgia',
+  template: QUICK_TEMPLATES_EN[0].template,
 };
 
 export const DEFAULT_ANNOUNCEMENT = DEFAULT_ANNOUNCEMENT_KA;

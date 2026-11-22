@@ -29,6 +29,41 @@ export function georgianToLatin(text: string): string {
   return result;
 }
 
+export function formatDisplayDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const [, year, month, day] = match;
+    return `${day}.${month}.${year}`;
+  }
+  return dateStr;
+}
+
+export function formatDisplayTime(timeStr: string): string {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  if (parts.length >= 2) {
+    return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+  }
+  return timeStr;
+}
+
+export function formatDisplayDateTime(dateStr: string, timeStr: string): string {
+  const d = formatDisplayDate(dateStr);
+  const t = formatDisplayTime(timeStr);
+  if (d && t) return `${d} • ${t}`;
+  return d || t || '';
+}
+
+export function formatSentAt(date: Date = new Date()): string {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${day}.${month}.${year} • ${hours}:${minutes}`;
+}
+
 export function getStudentDisplayName(
   student: Student,
   lang: Language
@@ -83,6 +118,9 @@ export function renderTemplate(
         : 'Kings-Style Olympiad'
       : student.track;
 
+  const formattedDate = formatDisplayDate(announcement.date);
+  const formattedTime = formatDisplayTime(announcement.time);
+
   // Georgian tags
   result = result.replaceAll('{სახელი}', names.firstName);
   result = result.replaceAll('{გვარი}', names.lastName);
@@ -90,8 +128,8 @@ export function renderTemplate(
   result = result.replaceAll('{კლასი}', gradeText);
   result = result.replaceAll('{მიმართულება}', trackText || '');
   result = result.replaceAll('{ღონისძიება}', announcement.eventName || '');
-  result = result.replaceAll('{თარიღი}', announcement.date || '');
-  result = result.replaceAll('{დრო}', announcement.time || '');
+  result = result.replaceAll('{თარიღი}', formattedDate || announcement.date || '');
+  result = result.replaceAll('{დრო}', formattedTime || announcement.time || '');
   result = result.replaceAll('{ადგილი}', announcement.location || '');
 
   // English tags
@@ -101,8 +139,8 @@ export function renderTemplate(
   result = result.replaceAll('{grade}', gradeText);
   result = result.replaceAll('{track}', trackText || '');
   result = result.replaceAll('{event}', announcement.eventName || '');
-  result = result.replaceAll('{date}', announcement.date || '');
-  result = result.replaceAll('{time}', announcement.time || '');
+  result = result.replaceAll('{date}', formattedDate || announcement.date || '');
+  result = result.replaceAll('{time}', formattedTime || announcement.time || '');
   result = result.replaceAll('{location}', announcement.location || '');
 
   return result;
